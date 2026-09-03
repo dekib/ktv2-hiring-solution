@@ -80,11 +80,13 @@ contract Ktv2OwnershipTimelock is ReentrancyGuard {
         require(msg.sender == currentLock.originalOwner, "Not original owner");
         require(block.timestamp >= currentLock.unlockTime, "Not expired");
         
-
+        // there was the problem
+        address ownerToRestore = currentLock.originalOwner;
+        currentLock.active = false;
         
-        Ownable(ktv2Contract).transferOwnership(owner);
+        Ownable(ktv2Contract).transferOwnership(ownerToRestore);
         
-        emit OwnershipRestored(owner, block.timestamp);
+        emit OwnershipRestored(ownerToRestore, block.timestamp);
     }
     
     /**
@@ -112,7 +114,7 @@ contract Ktv2OwnershipTimelock is ReentrancyGuard {
         if (!currentLock.active) {
             return 0;
         }
-        return currentLock.unlockTime - block.timestamp;
+        return block.timestamp >= currentLock.unlockTime ? 0 : currentLock.unlockTime - block.timestamp;
     }
     
     /**
@@ -154,4 +156,4 @@ contract Ktv2OwnershipTimelock is ReentrancyGuard {
             registeredOwner
         );
     }
-}// main branch state
+}
